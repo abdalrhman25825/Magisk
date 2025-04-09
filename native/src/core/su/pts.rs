@@ -65,7 +65,7 @@ fn resize_pty(outfd: i32) {
     }
 }
 
-pub fn pump_stdin_stdout(infd: i32, outfd: i32) {
+pub fn pump_tty(infd: i32, outfd: i32) {
     set_stdin_raw();
 
     let sfd = unsafe {
@@ -82,7 +82,7 @@ pub fn pump_stdin_stdout(infd: i32, outfd: i32) {
 
     let mut pfds = [
         pollfd {
-            fd: STDIN_FILENO,
+            fd: if outfd > 0 { STDIN_FILENO } else { -1 },
             events: POLLIN,
             revents: 0,
         },
