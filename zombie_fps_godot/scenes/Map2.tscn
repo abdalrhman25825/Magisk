@@ -1,0 +1,144 @@
+[gd_scene load_steps=10 format=3 uid="uid://map2_scene"]
+
+[ext_resource type="Script" path="res://scripts/game_state.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/weapon_manager.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/zombie_spawner.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/wave_manager.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/shop.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/perk_station.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/Zombie.tscn" id="9"]
+
+[sub_resource type="BoxMesh" id="1"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="CapsuleShape3D" id="2"]
+
+[sub_resource type="BoxShape3D" id="3"]
+size = Vector3(2, 2, 2)
+
+[sub_resource type="BoxShape3D" id="4"]
+size = Vector3(2, 2, 2)
+
+[node name="Map2" type="Node3D"]
+
+[node name="GameState" type="Node" parent="."]
+script = ExtResource("1")
+
+[node name="World" type="Node3D" parent="."]
+
+[node name="Floor" type="MeshInstance3D" parent="World"]
+mesh = SubResource("1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="World"]
+shape = SubResource("2")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+script = ExtResource("2")
+
+[node name="Head" type="Node3D" parent="Player"]
+
+[node name="Camera3D" type="Camera3D" parent="Player/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="RayCast3D" type="RayCast3D" parent="Player/Head/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+cast_to = Vector3(0, 0, -100)
+
+[node name="WeaponManager" type="Node" parent="Player"]
+script = ExtResource("3")
+raycast_path = NodePath("../Head/Camera3D/RayCast3D")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.8, 0.6, 0)
+
+[node name="ZombieSpawner" type="Node3D" parent="."]
+script = ExtResource("4")
+player_path = NodePath("../Player")
+zombie_scene = ExtResource("9")
+
+[node name="Spawn1" type="Marker3D" parent="ZombieSpawner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -18)
+
+[node name="Spawn2" type="Marker3D" parent="ZombieSpawner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -15)
+
+[node name="Spawn3" type="Marker3D" parent="ZombieSpawner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 18)
+
+[node name="Spawn4" type="Marker3D" parent="ZombieSpawner"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, 20)
+
+[node name="WaveManager" type="Node" parent="."]
+script = ExtResource("5")
+spawner_path = NodePath("../ZombieSpawner")
+game_state_path = NodePath("../GameState")
+
+[node name="Shop" type="Area3D" parent="."]
+script = ExtResource("6")
+game_state_path = NodePath("../GameState")
+player_path = NodePath("../Player")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 6)
+
+[node name="ShopMesh" type="MeshInstance3D" parent="Shop"]
+mesh = SubResource("3")
+
+[node name="ShopCollision" type="CollisionShape3D" parent="Shop"]
+shape = SubResource("3")
+
+[node name="PerkStation" type="Area3D" parent="."]
+script = ExtResource("7")
+game_state_path = NodePath("../GameState")
+player_path = NodePath("../Player")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -6)
+
+[node name="PerkMesh" type="MeshInstance3D" parent="PerkStation"]
+mesh = SubResource("4")
+
+[node name="PerkCollision" type="CollisionShape3D" parent="PerkStation"]
+shape = SubResource("4")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("8")
+
+[node name="MarginContainer" type="MarginContainer" parent="HUD"]
+anchors_preset = 0
+anchor_right = 0
+anchor_bottom = 0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_left = 16
+offset_top = 16
+offset_right = 320
+offset_bottom = 200
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/MarginContainer"]
+
+[node name="PointsLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+text = "Points: 500"
+
+[node name="WaveLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+text = "Wave: 1"
+
+[node name="AmmoLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+text = "Ammo: 12 / 60"
+
+[node name="MessageLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+text = ""
+
+[node name="GameOverLabel" type="Label" parent="HUD"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120
+offset_top = -20
+offset_right = 120
+offset_bottom = 20
+text = "GAME OVER"
+
+[connection signal="points_changed" from="GameState" to="HUD" method="update_points"]
+[connection signal="wave_changed" from="GameState" to="HUD" method="update_wave"]
+[connection signal="ammo_changed" from="Player/WeaponManager" to="HUD" method="update_ammo"]
